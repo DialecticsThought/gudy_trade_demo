@@ -1,7 +1,8 @@
 package com.gudy.seq.thirdpart.codec;
 
+import com.gudy.seq.thirdpart.bean.CommonMsg;
 import io.vertx.core.buffer.Buffer;
-import thirdpart.bean.CommonMsg;
+
 
 public interface IMsgCodec {
 

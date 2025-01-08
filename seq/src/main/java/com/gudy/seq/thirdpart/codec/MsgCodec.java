@@ -1,9 +1,10 @@
 package com.gudy.seq.thirdpart.codec;
 
+import com.gudy.seq.thirdpart.bean.CommonMsg;
 import io.vertx.core.buffer.Buffer;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import thirdpart.bean.CommonMsg;
+
 
 @Log4j2
 @AllArgsConstructor
