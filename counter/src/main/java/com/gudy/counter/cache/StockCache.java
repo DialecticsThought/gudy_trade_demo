@@ -44,9 +44,11 @@ public class StockCache {
 
         //1.加载股票数据
         List<Stock> stocks = service.queryAllStock();
-        List<Map<String, Object>> allStocks = service.convertStockToMap(stocks);
-        //List<Map<String, Object>> allStocks = DbUtil.queryAllSotckInfo();
+        List<Map<String, Object>> allStocks = null;
 
+        if (!CollectionUtils.isEmpty(stocks)) {
+            allStocks = service.convertStockToMap(stocks);
+        }
 /*        if (CollectionUtils.isEmpty(allStocks)) {
             log.error("no stock find in db");
             return;

@@ -27,6 +27,11 @@ import java.io.File;
 @Log4j2
 public class GatewayConfig {
     /*
+     *排队机抓取服务的端口
+     * */
+    @Value("${gateway.fetch-service-port}")
+    private Integer fetchServicePort;
+    /*
      * 网关id
      * */
     @Value("${gateway.id}")
@@ -51,43 +56,4 @@ public class GatewayConfig {
      * */
     private io.vertx.core.Vertx vertx = io.vertx.core.Vertx.vertx();
 
-    /*
-     * 解析xml配置文件
-     * */
-    public void initAndParseConfig(String filePath) throws DocumentException {
-        SAXReader saxReader = new SAXReader();
-        Document document = saxReader.read(new File(filePath));
-        // 得到根节点
-        Element rootElement = document.getRootElement();
-        //解析得到端口 和网关id
-        id = Short.parseShort(rootElement.element("id").getText());
-
-        recvPort = Integer.parseInt(rootElement.element("recvPort").getText());
-
-        //TODO 数据库连接 连接柜台列表
-    }
-
-    public void startup() {
-        //启动TCP监听对应的revcPort端口
-        initRecv();
-
-        //TODO 排队机交互
-    }
-
-    public void initRecv() {
-        NetServer netServer = vertx.createNetServer();
-        netServer.connectHandler(new ConnectHandler(this));
-        netServer.listen(recvPort, asyncResult -> {
-            if (asyncResult.succeeded()) {
-                log.info("gateway startup success at port : {}", recvPort);
-            } else {
-                log.error("gateway startup fail");
-            }
-        });
-    }
-
-    @PostConstruct
-    private void init() {
-        startup();
-    }
 }

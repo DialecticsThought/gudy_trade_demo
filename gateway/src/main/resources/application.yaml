@@ -9,6 +9,7 @@ spring:
 #网关id
 gateway:
   id: 1001
+  fetch-service-port: 8890 # 排队机抓取服务的端口
 counter:
   id: 1000 # 会员id
   dataCenterId: 0 # 机房id

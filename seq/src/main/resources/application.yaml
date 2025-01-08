@@ -1,0 +1,14 @@
+# 设置服务器端口
+server:
+  port: 8891
+spring:
+  application:
+    name: gudy_trade_seq
+
+#raft
+raft:
+  datapath: F://server1/
+  serverip: 127.0.0.1
+  serverport: 8891
+  serverlist: 127.0.0.1:8891,127.0.0.1:8892,127.0.0.1:8893 # 自己本机上mock一下 启动多个
+
