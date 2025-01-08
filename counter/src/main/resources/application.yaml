@@ -1,0 +1,44 @@
+# 设置服务器端口
+server:
+  port: 8081
+# docker run --name my-mysql -e MYSQL_ROOT_PASSWORD=root -d -p 33306:3306 mysql:latest
+# docker run --name my-redis -d -p 6379:6379 redis:latest
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://172.30.168.247:33306/trade?useSSL=false&serverTimezone=UTC
+  application:
+    name: gudy_trade_counter
+  data:
+    redis:
+      host: 172.30.168.247        # Redis 服务器地址
+      port: 6379             # Redis 服务器端口
+      password:             # 如果有密码，则在这里设置
+      database: 0           # 使用的数据库索引（默认为 0）
+      timeout: 2000         # 超时时间，单位毫秒
+
+# 所有mybatis的xml写在类路径的mapper文件夹下面
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml # XML 文件路径
+
+
+#redis缓存过期时间
+cache-expire:
+  captcha: 100 # 验证码
+  account: 3600 # 登录有效期
+  order: 360000 # 委托数据有效期
+
+#设置柜台的机器所在机架的位置
+counter:
+  id: 1000 # 会员id
+  dataCenterId: 0 # 机房id
+  rackId: 0 #机柜id
+  checksum: com.gudy.counter.thirdpart.checksum.ByteCheckSum
+  bodycodec: com.gudy.counter.thirdpart.codec.BodyCodec
+  msgcodec: com.gudy.counter.thirdpart.codec.MsgCodec
+  gatewayIp: 127.0.0.1
+  gatewayPort: 8091
+  gatewayid: 1001
+

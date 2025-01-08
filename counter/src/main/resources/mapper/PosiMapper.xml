@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gudy.counter.mapper.PosiMapper">
+
+    <!--持仓查询-->
+    <select id="queryPosiByUid" resultType="com.gudy.counter.bean.Posi">
+        select
+            t.id,
+            t.uid,
+            t.code,
+            s.stock_name,
+            t.count,
+            t.cost
+        from
+            t_posi t,
+            t_stock s
+        where
+            t.uid = #{uid}
+          and t.code = s.code
+    </select>
+
+    <!--持仓查询-->
+    <select id="queryPosiByUidAndCode" resultType="com.gudy.counter.bean.Posi">
+        select
+            t.id,
+            t.uid,
+            t.code,
+            s.stock_name,
+            t.count,
+            t.cost
+        from
+            t_posi t,
+            t_stock s
+        where
+            t.uid = #{uid} and t.code = #{code}
+          and t.code = s.code
+    </select>
+
+</mapper>

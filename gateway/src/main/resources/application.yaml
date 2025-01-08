@@ -1,0 +1,22 @@
+# 设置服务器端口
+server:
+  port: 8089
+# docker run --name my-mysql -e MYSQL_ROOT_PASSWORD=root -d -p 33306:3306 mysql:latest
+# docker run --name my-redis -d -p 6379:6379 redis:latest
+spring:
+  application:
+    name: gudy_trade_gateway
+#网关id
+gateway:
+  id: 1001
+counter:
+  id: 1000 # 会员id
+  dataCenterId: 0 # 机房id
+  rackId: 0 #机柜id
+  checksum: com.gudy.counter.thirdpart.checksum.ByteCheckSum
+  bodycodec: com.gudy.counter.thirdpart.codec.BodyCodec
+  msgcodec: com.gudy.counter.thirdpart.codec.MsgCodec
+  gatewayIp: 127.0.0.1
+  gatewayPort: 8091
+  gatewayid: 1001
+

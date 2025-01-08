@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gudy.counter.mapper.UserMapper">
+
+    <!-- 查询账户信息 -->
+    <!--
+     t.modifydate AS lastLoginDate,
+     t.modifytime AS lastLoginTime
+            -->
+    <select id="findAccountByUidAndPassword" resultType="com.gudy.counter.bean.User">
+        SELECT
+            t.id,
+            t.uid,
+            t.modify_date
+            t.update_time
+        FROM t_user t
+        WHERE t.uid = #{uid}
+          AND t.password = #{password}
+    </select>
+
+    <!-- 插入账户信息 -->
+    <insert id="insertAccount" parameterType="com.gudy.counter.bean.User">
+        INSERT INTO t_user (uid, password)
+        VALUES (#{uid}, #{password})
+    </insert>
+
+    <!-- 更新账户信息 -->
+    <update id="updateAccountById" parameterType="com.gudy.counter.bean.User">
+        UPDATE t_user
+        SET
+            password = #{password},
+            modify_date = #{lastLoginDate},
+            update_time = #{lastLoginTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除账户信息 -->
+    <delete id="deleteAccountById" parameterType="int">
+        DELETE FROM t_user
+        WHERE id = #{id}
+    </delete>
+
+</mapper>
