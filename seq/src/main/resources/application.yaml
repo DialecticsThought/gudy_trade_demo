@@ -5,10 +5,20 @@ spring:
   application:
     name: gudy_trade_seq
 
-#raft
+#raft 集群
+# 需要 三个sequence 进程  那么 每个sequence 就有不同的 配置
+# 其他两个可以定义  F://server2/  F://server3/   端口是8892 8893
 raft:
   datapath: F://server1/
   serverip: 127.0.0.1
   serverport: 8891
-  serverlist: 127.0.0.1:8891,127.0.0.1:8892,127.0.0.1:8893 # 自己本机上mock一下 启动多个
+  serverlist: 127.0.0.1:8891,127.0.0.1:8892,127.0.0.1:8893 # 自己本机上根据这个配置mock一下 启动多个
+
+fetch-url: bolt://127.0.0.1:8890; # 查看gateway模块的配置
+
+# 局域网组播
+# 需要 三个sequence  那么 每个sequence 就有不同的 ip 和端口 端口必须不同 可以是 1235 1236
+multicast:
+  ip: 230.0.0.1
+  port: 1234
 

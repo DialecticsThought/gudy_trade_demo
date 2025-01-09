@@ -38,7 +38,7 @@ counter:
   checksum: com.gudy.counter.thirdpart.checksum.ByteCheckSum
   bodycodec: com.gudy.counter.thirdpart.codec.BodyCodec
   msgcodec: com.gudy.counter.thirdpart.codec.MsgCodec
-  gatewayIp: 127.0.0.1
-  gatewayPort: 8091
-  gatewayid: 1001
+  gatewayIp: 127.0.0.1 # 需要和gateway模块 关联
+  gatewayPort: 8091 # 需要和gateway模块 关联
+  gatewayid: 1001 # 需要和gateway模块 关联
 

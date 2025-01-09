@@ -1,0 +1,24 @@
+# 设置服务器端口
+server:
+  port: 8082
+# docker run --name my-mysql -e MYSQL_ROOT_PASSWORD=root -d -p 33306:3306 mysql:latest
+# docker run --name my-redis -d -p 6379:6379 redis:latest
+spring:
+  application:
+    name: gudy_trade_engine
+# 网关id
+# 这里不同的gateway进程需要设置不同的id和fetch-service-port
+engine:
+  # 撮合核心自带的id
+  id: 1003
+  # mqtt总线的端口  engine 会把数据写入总线 其他模块订阅
+  pub-port: 8890
+  # mqtt总线的地址
+  pub-ip: 127.0.0.1
+  # 组播端口 和sequence模块关联
+  order-recv-port: 1234
+  # 组播地址 和sequence模块关联
+  order-recv-ip: 230.0.0.1
+  # 和sequence模块关联 sequence要启动这3个进程  这3个是raft的kv数据库
+  sequence-list: 127.0.0.1:8891,127.0.0.1:8892,127.0.0.1:8893
+

@@ -15,9 +15,13 @@ import com.gudy.seq.config.SequenceConfig;
 import com.gudy.seq.task.FetchTask;
 import com.gudy.seq.thirdpart.codec.IBodyCodec;
 import com.gudy.seq.thirdpart.fetchsurv.IFetchService;
+import io.vertx.core.Vertx;
+import io.vertx.core.datagram.DatagramSocket;
+import io.vertx.core.datagram.DatagramSocketOptions;
 import jakarta.annotation.Resource;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.alipay.sofa.rpc.config.ConsumerConfig;
 import com.alipay.sofa.rpc.listener.ChannelListener;
@@ -39,11 +43,18 @@ public class SequenceCore {
 
     private Node node;
 
+    @Value("${fetch-url}")
     private String fetchurls;
 
     private IBodyCodec codec;
 
     private Map<String, IFetchService> fetchServiceMap = Maps.newConcurrentMap();
+
+    private DatagramSocket multicastSender;
+
+    private void startMulticastSender(){
+        multicastSender = Vertx.vertx().createDatagramSocket(new DatagramSocketOptions());
+    }
 
     public void startup() {
         //1..初始化kv store集群

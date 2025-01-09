@@ -6,18 +6,10 @@ server:
 spring:
   application:
     name: gudy_trade_gateway
-#网关id
+# 网关id
+# 这里不同的gateway进程需要设置不同的id和fetch-service-port
 gateway:
   id: 1001
-  fetch-service-port: 8890 # 排队机抓取服务的端口
-counter:
-  id: 1000 # 会员id
-  dataCenterId: 0 # 机房id
-  rackId: 0 #机柜id
-  checksum: com.gudy.counter.thirdpart.checksum.ByteCheckSum
-  bodycodec: com.gudy.counter.thirdpart.codec.BodyCodec
-  msgcodec: com.gudy.counter.thirdpart.codec.MsgCodec
-  gatewayIp: 127.0.0.1
-  gatewayPort: 8091
-  gatewayid: 1001
+  fetch-service-port: 8890 # 排队机抓取服务的端口  和 sequence模块关联
+  recv-port: 8091 # 和counter模块关联
 

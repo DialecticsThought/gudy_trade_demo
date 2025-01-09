@@ -9,6 +9,7 @@ import com.gudy.seq.thirdpart.bean.CmdPack;
 import com.gudy.seq.thirdpart.fetchsurv.IFetchService;
 import com.gudy.seq.thirdpart.order.OrderCmd;
 import com.gudy.seq.thirdpart.order.OrderDirection;
+import io.vertx.core.buffer.Buffer;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -58,66 +59,12 @@ public class FetchTask extends TimerTask {
         if (CollectionUtils.isEmpty(cmds)) {
             return;
         }
-
         log.info(cmds);
         //对数据进行排序
         // 排序 时间优先 价格优先 量优先
         cmds.sort((o1, o2) -> {
             //第一种写法
-//            if(o1.timestamp > o2.timestamp){
-//                return 1;
-//            }else if(o1.timestamp < o2.timestamp){
-//                return -1;
-//            }else {
-//                //比优势价格
-//                if(o1.direction == OrderDirection.BUY){
-//                    if(o1.direction == o2.direction){
-//                        if(o1.price > o2.price){
-//                            return -1;
-//                        }else if(o1.price < o2.price){
-//                            return 1;
-//                        }else {
-//                            //量比较
-//                            if(o1.volume > o2.volume){
-//                                return -1;
-//                            }else if(o1.volume < o2.volume){
-//                                return 1;
-//                            }else {
-//                                return 0;
-//                            }
-//                        }
-//                    }else {
-//                        //方向不同 不影响成交结果 顺序不变
-//                        return 0;
-//                    }
-//                }else if(o1.direction == OrderDirection.SELL){
-//                    if(o1.direction == o2.direction){
-//                        if(o1.price < o2.price){
-//                            return -1;
-//                        }else if(o1.price > o2.price){
-//                            return 1;
-//                        }else {
-//                            //量比较
-//                            if(o1.volume > o2.volume){
-//                                return -1;
-//                            }else if(o1.volume < o2.volume){
-//                                return 1;
-//                            }else {
-//                                return 0;
-//                            }
-//                        }
-//                    }else {
-//                        //方向不同 不影响成交结果 顺序不变
-//                        return 0;
-//                    }
-//                }else {
-//                    return 1;
-//                }
-//            }
-
-            //第二种写法
             //时间优先 价格优先 量优先
-
             //第二种写法
             int res = compareTime(o1, o2);
             if (res != 0) {
@@ -133,41 +80,40 @@ public class FetchTask extends TimerTask {
             return res;
         });
 
-        //存储到KV Store，发送到撮合核心
+        // 存储到KV Store + 发送到撮合核心
         try {
-
-            //1.生成Packetno
+            // 1.生成Packetno TODO 包的序号是用来判断是否乱序 是否丢包的依据
             long packetNo = getPacketNoFromStore();
-
-            //2.入库
+            // 2.入库 报的序列号  对应的委托数据
             CmdPack pack = new CmdPack(packetNo, cmds);
+            // 序列化 对象
             byte[] serialize = sequenceCore.getCodec().serialize(pack);
+            // 入库
             insertToKvStore(packetNo, serialize);
-
-            //3.更新packetno+1
+            // 3.更新packetno+1
             updatePacketNoInStore(packetNo + 1);
-
             //4.发送
-/*            config.getMulticastSender().send(
+            sequenceCore.getMulticastSender().send(
                     Buffer.buffer(serialize),
-                    config.getMulticastPort(),
-                    config.getMulticastIp(),
-                    null
-            );*/
-
+                    sequenceCore.getSequenceConfig().getMulticastPort(),
+                    sequenceCore.getSequenceConfig().getMulticastIp(),
+                    null // 这个处理器是数据包离开本机网卡之后执行的 这里没有需求
+            );
         } catch (Exception e) {
             log.error("encode cmd packet error", e);
         }
     }
 
     /**
-     * 更新PacketNo
+     * 更新PacketNo 包的序号
      *
      * @param packetNo
      */
     private void updatePacketNoInStore(long packetNo) {
+        // 在 kv 数据库中 key是字节数组 所以定义一个字节数组 把 packetNo放入字节数组
         final byte[] bytes = new byte[8];
         Bits.putLong(bytes, 0, packetNo);
+        // put是异步操作 bput是同步操作
         sequenceCore.getNode().getRheaKVStore().put(PACKET_NO_KEY, bytes);
     }
 
@@ -178,11 +124,17 @@ public class FetchTask extends TimerTask {
      * @param serialize
      */
     private void insertToKvStore(long packetNo, byte[] serialize) {
+        // 在 kv 数据库中 key是字节数组 所以定义一个字节数组 把 packetNo放入字节数组
         byte[] key = new byte[8];
         Bits.putLong(key, 0, packetNo);
+        // put是异步操作 bput是同步操作
         sequenceCore.getNode().getRheaKVStore().put(key, serialize);
     }
 
+    /**
+     * k v store 里面所有的key是用byte表示
+     * 指定 seq_pqcket_no 这个key对应的value存的是packet_no
+     * */
     private static final byte[] PACKET_NO_KEY = BytesUtil.writeUtf8("seq_pqcket_no");
 
     /**
@@ -192,7 +144,9 @@ public class FetchTask extends TimerTask {
      */
     private long getPacketNoFromStore() {
         final byte[] bPacketNo = sequenceCore.getNode().getRheaKVStore().bGet(PACKET_NO_KEY);
+        // 初始化 包的序号
         long packetNo = 0;
+        // 刚开始 kv 可以为空
         if (ArrayUtils.isNotEmpty(bPacketNo)) {
             packetNo = Bits.getLong(bPacketNo, 0);
         }

@@ -37,9 +37,9 @@ public class GatewayConfig {
     @Value("${gateway.id}")
     private Short id;
     /*
-     * 连接的端口
+     * 和柜台counter连接的端口
      * */
-    @Value("${server.port}")
+    @Value("${gateway.recv-port}")
     private Integer recvPort;
     /*
      * 序列化和反序列化的解析器

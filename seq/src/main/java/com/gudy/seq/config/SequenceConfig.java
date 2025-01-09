@@ -33,4 +33,9 @@ public class SequenceConfig {
     @Value("${raft.serverlist}")
     private String serverList;
 
+    @Value("${multicast.ip}")
+    private String multicastIp;
+
+    @Value("${multicast.port}")
+    private Integer multicastPort;
 }
