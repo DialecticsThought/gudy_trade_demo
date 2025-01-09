@@ -22,7 +22,6 @@ public enum CmdResultCode {
 
     SUCCESS(1),
 
-
     /////////////////////////orderbook/////////////////////////////
 
     INVALID_ORDER_ID(-1),//不合法委托ID

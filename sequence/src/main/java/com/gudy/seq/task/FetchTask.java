@@ -23,11 +23,10 @@ import java.util.Map;
 import java.util.TimerTask;
 
 /**
- * @Description
+ * @Description 定序的三大原则
  * @Author veritas
  * @Data 2025/1/8 19:24
  */
-
 @Log4j2
 @RequiredArgsConstructor
 public class FetchTask extends TimerTask {
@@ -60,22 +59,27 @@ public class FetchTask extends TimerTask {
             return;
         }
         log.info(cmds);
-        //对数据进行排序
-        // 排序 时间优先 价格优先 量优先
+        /**
+         * 对数据进行排序
+         * 1.时间优先
+         * 2.相同的时间 再价格优先 买入的价格越高优先 ，卖出的价格越低越优先
+         * 3.相同的价格 量优先
+         */
         cmds.sort((o1, o2) -> {
-            //第一种写法
-            //时间优先 价格优先 量优先
-            //第二种写法
+            //return compare(o1, o2);
+            // 1. 先比较 时间
             int res = compareTime(o1, o2);
             if (res != 0) {
                 return res;
             }
-
+            // 2.代码执行到这里说明 时间相同
+            // 比较价格 买入的价格越高优先 ，卖出的价格越低越优先
             res = comparePrice(o1, o2);
             if (res != 0) {
                 return res;
             }
-
+            // 2.代码执行到这里说明 时间价格
+            // 比较量
             res = compareVolume(o1, o2);
             return res;
         });
@@ -134,7 +138,7 @@ public class FetchTask extends TimerTask {
     /**
      * k v store 里面所有的key是用byte表示
      * 指定 seq_pqcket_no 这个key对应的value存的是packet_no
-     * */
+     */
     private static final byte[] PACKET_NO_KEY = BytesUtil.writeUtf8("seq_pqcket_no");
 
     /**
@@ -183,6 +187,66 @@ public class FetchTask extends TimerTask {
             return -1;
         } else {
             return 0;
+        }
+    }
+
+    /**
+     * 第一种写法
+     *
+     * @param o1
+     * @param o2
+     * @return
+     */
+    private Integer compare(OrderCmd o1, OrderCmd o2) {
+        if (o1.timestamp > o2.timestamp) {
+            return 1; // o1 在 o2 后面
+        } else if (o1.timestamp < o2.timestamp) {
+            return -1;// o1 在 o2 前面
+        } else {// 相同的时间 看价格
+            //先查看 o1的买卖方向
+            if (o1.direction == OrderDirection.BUY) {
+                // 在查看 o2的买卖方向
+                if (o1.direction == o2.direction) {
+                    // o1 o2 方向相同 价格高的在前面
+                    if (o1.price > o2.price) {
+                        return -1;
+                    } else if (o1.price < o2.price) {
+                        return 1;
+                    } else {// 相同的价格 看量
+                        if (o1.volume > o2.volume) {
+                            return -1;
+                        } else if (o1.volume < o2.volume) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                } else {// o1 o2 的买卖方向不同 顺序不同
+                    return 0;
+                }
+            } else if (o1.direction == OrderDirection.SELL) {
+                // 在查看 o2的买卖方向
+                if (o1.direction == o2.direction) {
+                    // o1 o2 方向相同 价格低的在前面 TODO 和买的时候不同
+                    if (o1.price < o2.price) {
+                        return -1;
+                    } else if (o1.price > o2.price) {
+                        return 1;
+                    } else {// 相同的价格 看价格
+                        if (o1.volume > o2.volume) {
+                            return -1;
+                        } else if (o1.volume < o2.volume) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                } else {// o1 o2 的买卖方向不同 顺序不同
+                    return 0;
+                }
+            } else {// 非法委托
+                return 1;
+            }
         }
     }
 
