@@ -72,7 +72,7 @@ class HandleCmdPackThread implements Runnable {
                 // 得到数据
                 // EngineCore 在监听udp组播的时候得到的数据
                 CmdPack cmds = recvCache.poll(10, TimeUnit.SECONDS);
-
+                handle(cmds);
             } catch (Exception e) {
                 log.error("msg packet recvCache error, continue", e);
             }
