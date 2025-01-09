@@ -1,7 +1,8 @@
 package com.gudy.engine.thirdpart.hq;
 
+import com.gudy.engine.thirdpart.order.OrderStatus;
 import lombok.Builder;
-import thirdpart.order.OrderStatus;
+
 
 import java.io.Serializable;
 

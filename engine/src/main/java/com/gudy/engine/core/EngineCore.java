@@ -10,13 +10,16 @@ import com.alipay.sofa.jraft.rhea.options.configured.MultiRegionRouteTableOption
 import com.alipay.sofa.jraft.rhea.options.configured.PlacementDriverOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.RheaKVStoreOptionsConfigured;
 import com.gudy.engine.bean.CmdPacketQueue;
-import com.gudy.engine.bean.RbCmd;
+import com.gudy.engine.bean.command.CmdResultCode;
+import com.gudy.engine.bean.command.RbCmd;
 import com.gudy.engine.config.EngineConfig;
 import com.gudy.engine.thirdpart.bean.CmdPack;
 import com.gudy.engine.thirdpart.checksum.IChecksum;
 import com.gudy.engine.thirdpart.codec.IBodyCodec;
 import com.gudy.engine.thirdpart.codec.IMsgCodec;
+import com.gudy.engine.thirdpart.order.CmdType;
 import com.gudy.engine.thirdpart.order.OrderCmd;
+import com.lmax.disruptor.EventTranslatorOneArg;
 import com.lmax.disruptor.RingBuffer;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -190,4 +193,41 @@ public class EngineCore {
         }
     }
 
+    /**
+     * 委托trans
+     */
+    private static final EventTranslatorOneArg<RbCmd, OrderCmd> NEW_ORDER_TRANSLATOR = (rbCmd, seq, newOrder) -> {
+        rbCmd.command = CmdType.NEW_ORDER;
+        rbCmd.timestamp = newOrder.timestamp;
+        rbCmd.mid = newOrder.mid;
+        rbCmd.uid = newOrder.uid;
+        rbCmd.code = newOrder.code;
+        rbCmd.direction = newOrder.direction;
+        rbCmd.price = newOrder.price;
+        rbCmd.volume = newOrder.volume;
+        rbCmd.orderType = newOrder.orderType;
+        rbCmd.oid = newOrder.oid;
+        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    };
+
+    /**
+     * 撤单trans
+     */
+    private static final EventTranslatorOneArg<RbCmd, OrderCmd> CANCEL_ORDER_TRANSLATOR = (rbCmd, seq, cancelOrder) -> {
+        rbCmd.command = CmdType.CANCEL_ORDER;
+        rbCmd.timestamp = cancelOrder.timestamp;
+        rbCmd.mid = cancelOrder.mid;
+        rbCmd.uid = cancelOrder.uid;
+        rbCmd.code = cancelOrder.code;
+        rbCmd.oid = cancelOrder.oid;
+        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    };
+
+    /**
+     * 行情发送
+     */
+    private static final EventTranslatorOneArg<RbCmd, OrderCmd> HQ_PUB_TRANSLATOR = (rbCmd, seq, hqPub) -> {
+        rbCmd.command = CmdType.HQ_PUB;
+        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    };
 }
