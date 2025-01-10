@@ -9,9 +9,13 @@ import com.alipay.sofa.jraft.rhea.options.RheaKVStoreOptions;
 import com.alipay.sofa.jraft.rhea.options.configured.MultiRegionRouteTableOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.PlacementDriverOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.RheaKVStoreOptionsConfigured;
+import com.gudy.counter.service.StockService;
+import com.gudy.counter.service.UserService;
 import com.gudy.engine.bean.CmdPacketQueue;
 import com.gudy.engine.bean.command.CmdResultCode;
-import com.gudy.engine.bean.command.RbCmd;
+import com.gudy.engine.bean.command.RingBufferCmd;
+import com.gudy.engine.bean.handler.BaseHandler;
+import com.gudy.engine.bean.handler.ExistRiskHandler;
 import com.gudy.engine.config.EngineConfig;
 import com.gudy.engine.thirdpart.bean.CmdPack;
 import com.gudy.engine.thirdpart.checksum.IChecksum;
@@ -49,11 +53,15 @@ import java.util.*;
 @Log4j2
 public class EngineCore {
 
-    private RingBuffer<RbCmd> ringBuffer;
+    private RingBuffer<RingBufferCmd> ringBuffer;
     @Resource
     private EngineConfig engineConfig;
     @Resource
     private CmdPacketQueue cmdPacketQueue;
+    @Resource
+    private UserService userService;
+    @Resource
+    private StockService stockService;
 
     private IBodyCodec bodyCodec;
 
@@ -80,6 +88,15 @@ public class EngineCore {
         // 上下游通信的模版 是orderCmd 不能直接放入disruptor队列 需要用RbCmd
 
         // 前置风控处理器
+        try {
+            BaseHandler riskHandler = new ExistRiskHandler
+                    (userService.queryAllBalance().keySet()
+                            , stockService.queryAllStockCode());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // 撮合处理器 也就是订单簿处理器 （撮合 + 提供给发布模块查询服务）
     }
 
     private void startSeqConn() {
@@ -204,38 +221,38 @@ public class EngineCore {
     /**
      * 委托trans
      */
-    private static final EventTranslatorOneArg<RbCmd, OrderCmd> NEW_ORDER_TRANSLATOR = (rbCmd, seq, newOrder) -> {
-        rbCmd.command = CmdType.NEW_ORDER;
-        rbCmd.timestamp = newOrder.timestamp;
-        rbCmd.mid = newOrder.mid;
-        rbCmd.uid = newOrder.uid;
-        rbCmd.code = newOrder.code;
-        rbCmd.direction = newOrder.direction;
-        rbCmd.price = newOrder.price;
-        rbCmd.volume = newOrder.volume;
-        rbCmd.orderType = newOrder.orderType;
-        rbCmd.oid = newOrder.oid;
-        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    private static final EventTranslatorOneArg<RingBufferCmd, OrderCmd> NEW_ORDER_TRANSLATOR = (ringBufferCmd, seq, newOrder) -> {
+        ringBufferCmd.command = CmdType.NEW_ORDER;
+        ringBufferCmd.timestamp = newOrder.timestamp;
+        ringBufferCmd.mid = newOrder.mid;
+        ringBufferCmd.uid = newOrder.uid;
+        ringBufferCmd.code = newOrder.code;
+        ringBufferCmd.direction = newOrder.direction;
+        ringBufferCmd.price = newOrder.price;
+        ringBufferCmd.volume = newOrder.volume;
+        ringBufferCmd.orderType = newOrder.orderType;
+        ringBufferCmd.oid = newOrder.oid;
+        ringBufferCmd.resultCode = CmdResultCode.SUCCESS;
     };
 
     /**
      * 撤单trans
      */
-    private static final EventTranslatorOneArg<RbCmd, OrderCmd> CANCEL_ORDER_TRANSLATOR = (rbCmd, seq, cancelOrder) -> {
-        rbCmd.command = CmdType.CANCEL_ORDER;
-        rbCmd.timestamp = cancelOrder.timestamp;
-        rbCmd.mid = cancelOrder.mid;
-        rbCmd.uid = cancelOrder.uid;
-        rbCmd.code = cancelOrder.code;
-        rbCmd.oid = cancelOrder.oid;
-        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    private static final EventTranslatorOneArg<RingBufferCmd, OrderCmd> CANCEL_ORDER_TRANSLATOR = (ringBufferCmd, seq, cancelOrder) -> {
+        ringBufferCmd.command = CmdType.CANCEL_ORDER;
+        ringBufferCmd.timestamp = cancelOrder.timestamp;
+        ringBufferCmd.mid = cancelOrder.mid;
+        ringBufferCmd.uid = cancelOrder.uid;
+        ringBufferCmd.code = cancelOrder.code;
+        ringBufferCmd.oid = cancelOrder.oid;
+        ringBufferCmd.resultCode = CmdResultCode.SUCCESS;
     };
 
     /**
      * 行情发送
      */
-    private static final EventTranslatorOneArg<RbCmd, OrderCmd> HQ_PUB_TRANSLATOR = (rbCmd, seq, hqPub) -> {
-        rbCmd.command = CmdType.HQ_PUB;
-        rbCmd.resultCode = CmdResultCode.SUCCESS;
+    private static final EventTranslatorOneArg<RingBufferCmd, OrderCmd> HQ_PUB_TRANSLATOR = (ringBufferCmd, seq, hqPub) -> {
+        ringBufferCmd.command = CmdType.HQ_PUB;
+        ringBufferCmd.resultCode = CmdResultCode.SUCCESS;
     };
 }

@@ -31,6 +31,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements
      * @return
      * @throws Exception
      */
+    @Override
     public IntHashSet queryAllStockCode() throws Exception {
         // 创建 QueryWrapper 以生成 SQL 查询条件
         QueryWrapper<Stock> queryWrapper = new QueryWrapper<>();

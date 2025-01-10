@@ -13,7 +13,7 @@ import java.util.List;
 
 @Builder
 @ToString
-public class RbCmd {
+public class RingBufferCmd {
     /**
      * 产生rbCmd的时间错
      */
