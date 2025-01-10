@@ -3,10 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <!--        <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-parent</artifactId>
+                <version>3.4.1</version>
+                <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
+        <groupId>com.gudy</groupId>
+        <artifactId>gudy_trader_demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>com.gudy</groupId>
     <artifactId>counter</artifactId>
@@ -142,6 +145,12 @@
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
             <version>2.1.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections</artifactId>
+            <version>11.0.0</version> <!-- 请根据需要选择合适的版本 -->
         </dependency>
 
     </dependencies>

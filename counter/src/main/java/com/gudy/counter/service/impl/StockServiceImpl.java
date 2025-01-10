@@ -1,10 +1,12 @@
 package com.gudy.counter.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gudy.counter.bean.Stock;
 import com.gudy.counter.mapper.StockMapper;
 import com.gudy.counter.service.StockService;
 import jakarta.annotation.Resource;
+import org.eclipse.collections.impl.set.mutable.primitive.IntHashSet;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -23,6 +25,28 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements
 
     @Resource
     StockMapper stockMapper;
+
+    /**
+     * 给engine模块使用
+     * @return
+     * @throws Exception
+     */
+    public IntHashSet queryAllStockCode() throws Exception {
+        // 创建 QueryWrapper 以生成 SQL 查询条件
+        QueryWrapper<Stock> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("code").eq("status", 1);  // 查询状态为 1 的股票代码
+
+        List<Stock> stocks = list(queryWrapper);  // 执行查询
+        if (stocks == null || stocks.isEmpty()) {
+            throw new Exception("stock empty");
+        }
+
+        IntHashSet codes = new IntHashSet();
+        for (Stock stock : stocks) {
+            codes.add(stock.getCode());
+        }
+        return codes;
+    }
 
     @Override
     public List<Stock> queryAllStock() {

@@ -38,7 +38,9 @@ import java.util.*;
 
 
 /**
- * @Description
+ * @Description 1.流转到 前置风控
+ * 2.订流转到 订单簿 完成撮合
+ * 3.订流转到 发布线程 根据撮合的结果进行航行的发布
  * @Author veritas
  * @Data 2025/1/9 14:48
  */
@@ -47,7 +49,7 @@ import java.util.*;
 @Log4j2
 public class EngineCore {
 
-    private  RingBuffer<RbCmd> ringBuffer;
+    private RingBuffer<RbCmd> ringBuffer;
     @Resource
     private EngineConfig engineConfig;
     @Resource
@@ -67,11 +69,17 @@ public class EngineCore {
     public void startup() {
 
         // 启动撮合核心
-
+        startEngine();
         // 建立总线连接
 
         // 初始化排队机的kv store的链接
         startSeqConn();
+    }
+
+    public void startEngine() {
+        // 上下游通信的模版 是orderCmd 不能直接放入disruptor队列 需要用RbCmd
+
+        // 前置风控处理器
     }
 
     private void startSeqConn() {

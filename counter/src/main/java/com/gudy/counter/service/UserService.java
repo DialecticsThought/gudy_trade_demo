@@ -3,6 +3,7 @@ package com.gudy.counter.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gudy.counter.bean.User;
 import com.gudy.counter.bean.res.AccountRes;
+import org.eclipse.collections.impl.map.mutable.primitive.LongLongHashMap;
 
 /**
  * @Description
@@ -10,6 +11,8 @@ import com.gudy.counter.bean.res.AccountRes;
  * @Data 2025/1/5 20:35
  */
 public interface UserService extends IService<User> {
+
+    LongLongHashMap queryAllBalance() throws Exception;
 
     Long queryBalance(long uid);
 

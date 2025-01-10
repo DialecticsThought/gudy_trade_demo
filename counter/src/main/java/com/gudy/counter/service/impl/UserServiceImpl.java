@@ -9,6 +9,7 @@ import com.gudy.counter.cache.CacheType;
 import com.gudy.counter.cache.RedisCache;
 import com.gudy.counter.mapper.UserMapper;
 import com.gudy.counter.service.UserService;
+import com.gudy.counter.thirdpart.bean.MsgConstants;
 import com.gudy.counter.thirdpart.uuid.GudyUuid;
 import com.gudy.counter.util.JsonUtil;
 import jakarta.annotation.Resource;
@@ -16,6 +17,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import org.eclipse.collections.impl.map.mutable.primitive.LongLongHashMap;
 
 /**
  * @Description
@@ -29,6 +33,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
 
     private GudyUuid gudyUuid;
+
+    /**
+     * 给engine模块使用
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public LongLongHashMap queryAllBalance() throws Exception {
+        // 创建 QueryWrapper 以生成 SQL 查询条件
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("uid", "balance");  // 只查询 uid 和 balance 字段
+
+        List<User> users = list(queryWrapper);  // 使用 MyBatis-Plus 提供的 list 方法执行查询
+        if (users == null || users.isEmpty()) {
+            throw new Exception("user data empty");
+        }
+
+        LongLongHashMap uidBalanceMap = new LongLongHashMap();
+        for (User user : users) {
+            uidBalanceMap.put(user.getUid(), user.getBalance() * MsgConstants.MULTI_FACTOR);
+        }
+        return uidBalanceMap;
+    }
 
     @Override
     public Long queryBalance(long uid) {

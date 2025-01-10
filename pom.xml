@@ -2,6 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+
+    <!-- Maven 要求父模块的 packaging 类型应该是 pom，而不是 jar。
+    父模块作为顶级 POM 文件，它不应该是一个 JAR 包，而应该是一个 POM 包 -->
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>counter</module>
+        <module>gateway</module>
+        <module>sequence</module>
+        <module>engine</module>
+    </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -29,6 +41,20 @@
     <properties>
         <java.version>21</java.version>
     </properties>
+
+    <!-- 依赖管理 (Dependency Management) -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.4.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
