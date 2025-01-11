@@ -9,6 +9,8 @@ import com.alipay.sofa.jraft.rhea.options.RheaKVStoreOptions;
 import com.alipay.sofa.jraft.rhea.options.configured.MultiRegionRouteTableOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.PlacementDriverOptionsConfigured;
 import com.alipay.sofa.jraft.rhea.options.configured.RheaKVStoreOptionsConfigured;
+import com.google.common.collect.Lists;
+import com.gudy.counter.service.MemberService;
 import com.gudy.counter.service.StockService;
 import com.gudy.counter.service.UserService;
 import com.gudy.engine.bean.CmdPacketQueue;
@@ -16,15 +18,22 @@ import com.gudy.engine.bean.command.CmdResultCode;
 import com.gudy.engine.bean.command.RingBufferCmd;
 import com.gudy.engine.bean.handler.BaseHandler;
 import com.gudy.engine.bean.handler.ExistRiskHandler;
+import com.gudy.engine.bean.handler.L1PubHandler;
+import com.gudy.engine.bean.handler.StockMatchHandler;
+import com.gudy.engine.bean.orderbook.GOrderBookImpl;
+import com.gudy.engine.bean.orderbook.IOrderBook;
 import com.gudy.engine.config.EngineConfig;
 import com.gudy.engine.thirdpart.bean.CmdPack;
+import com.gudy.engine.thirdpart.bus.IBusSender;
+import com.gudy.engine.thirdpart.bus.MqttBusSender;
 import com.gudy.engine.thirdpart.checksum.IChecksum;
 import com.gudy.engine.thirdpart.codec.IBodyCodec;
 import com.gudy.engine.thirdpart.codec.IMsgCodec;
+import com.gudy.engine.thirdpart.hq.MatchData;
 import com.gudy.engine.thirdpart.order.CmdType;
 import com.gudy.engine.thirdpart.order.OrderCmd;
 import com.lmax.disruptor.EventTranslatorOneArg;
-import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.dsl.Disruptor;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramSocket;
@@ -33,6 +42,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+import org.eclipse.collections.impl.map.mutable.primitive.ShortObjectHashMap;
 import org.springframework.stereotype.Component;
 
 import java.net.Inet4Address;
@@ -52,8 +63,11 @@ import java.util.*;
 @Data
 @Log4j2
 public class EngineCore {
+    //private RingBuffer<RingBufferCmd> ringBuffer;
+    @Resource
+    private DisruptorCore disruptorCore;
 
-    private RingBuffer<RingBufferCmd> ringBuffer;
+    private IBusSender busSender;
     @Resource
     private EngineConfig engineConfig;
     @Resource
@@ -62,6 +76,8 @@ public class EngineCore {
     private UserService userService;
     @Resource
     private StockService stockService;
+    @Resource
+    private MemberService memberService;
 
     private IBodyCodec bodyCodec;
 
@@ -78,12 +94,24 @@ public class EngineCore {
 
         // 启动撮合核心
         startEngine();
-        // 建立总线连接
-
+        // 建立总线连接 初始化数据的发送
+        initPub();
         // 初始化排队机的kv store的链接
         startSeqConn();
     }
 
+    /**
+     * 建立总线连接 初始化数据的发送
+     */
+    private void initPub() {
+        busSender = new MqttBusSender(engineConfig.getPubIp(), engineConfig.getPubPort(), msgCodec, vertx);
+        // 这个类一启动 就连接总线
+        busSender.startup();
+    }
+
+    /**
+     * 启动撮合核心
+     */
     public void startEngine() {
         // 上下游通信的模版 是orderCmd 不能直接放入disruptor队列 需要用RbCmd
 
@@ -97,8 +125,32 @@ public class EngineCore {
         }
 
         // 撮合处理器 也就是订单簿处理器 （撮合 + 提供给发布模块查询服务）
+        // 给每一个股票代码都要一个orderBook
+        IntObjectHashMap<IOrderBook> orderBookMap = new IntObjectHashMap<>();
+        try {
+            stockService.queryAllStockCode().forEach(code -> orderBookMap.put(code, new GOrderBookImpl(code)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        final BaseHandler matchHandler = new StockMatchHandler(orderBookMap);
+
+        // 发布处理器
+        ShortObjectHashMap<List<MatchData>> matcherEventMap = new ShortObjectHashMap<>();
+        try {
+            //得到所有的柜台id(会员id)
+            for (short id : memberService.queryAllMemberIds()) {
+                // 每一个柜台都初始化 一个列表
+                matcherEventMap.put(id, Lists.newArrayList());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        final BaseHandler pubHandler = new L1PubHandler(matcherEventMap, this);
     }
 
+    /**
+     * 初始化排队机的kv store的链接
+     */
     private void startSeqConn() {
         List<RegionRouteTableOptions> regionRouteTableOptions = MultiRegionRouteTableOptionsConfigured
                 .newConfigured()
@@ -201,8 +253,13 @@ public class EngineCore {
         return networkInterface;
     }
 
-
+    /**
+     * 所有发布的指令 都在这里
+     *
+     * @param cmd
+     */
     public void submitCommand(OrderCmd cmd) {
+        Disruptor<RingBufferCmd> ringBuffer = disruptorCore.getDisruptor();
         switch (cmd.type) {
             case HQ_PUB:
                 ringBuffer.publishEvent(HQ_PUB_TRANSLATOR, cmd);

@@ -7,17 +7,19 @@ import java.io.Serializable;
 /**
  * 一档行情
  *
- * 卖五   46.93   5
- * 卖四   46.92   10
- * 卖三   46.91   296
- * 卖二   46.90   35
- * 卖一   46.88   601
+ * 档位   sellprices  sellVolumes
+ * 卖五   46.93        5
+ * 卖四   46.92        10
+ * 卖三   46.91        296
+ * 卖二   46.90        35
+ * 卖一   46.88        601
  *
- * 买一   46.87   30
- * 买二   46.86   51
- * 买三   46.85   10
- * 买四   46.83   16
- * 买五   46.82   52
+ * 档位   buyprices  buyVolumes
+ * 买一   46.87        30
+ * 买二   46.86        51
+ * 买三   46.85        10
+ * 买四   46.83        16
+ * 买五   46.82        52
  */
 @ToString
 public class L1MarketData implements Serializable {

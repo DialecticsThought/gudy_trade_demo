@@ -57,6 +57,7 @@ public class RingBufferCmd {
      * 保存撮合结果
      * MatchEvent是撮合模块发布撮合结果的成员变量
      * 所有的撮合结果会放入该链表中，流转到对应的handler进行处理
+     * TODO 这个数据是撮合处理器生成出来的
      */
     public List<MatchEvent> matchEventList;
 

@@ -15,6 +15,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * @Description
+ * TODO 每一个股票 的每一个价位 都有一个该对象
+ * @Author veritas
+ * @Data 2025/1/11 10:31
+ */
 @Log4j2
 @ToString
 @Data
@@ -26,6 +32,9 @@ public class GOrderBucketImpl implements IOrderBucket {
 
     /**
      * 2.当前 orderBucket对象的委托量
+     * 也就是 这个价格 的所有委托的量的累加和
+     * TODO 需要查阅资料
+     * 如果orderBucket.totalVolume = 0 说明 这个价格液晶没有任何委托了 也就是说没有必要留下这个 orderBucket
      */
     private long totalVolume = 0;
 
@@ -33,7 +42,7 @@ public class GOrderBucketImpl implements IOrderBucket {
      * 3.委托列表
      * 要求
      * 很快的把新的委托加入
-     * 很快的根据id吧对应的order排除
+     * 很快的根据id把对应的order排除
      */
     private final LinkedHashMap<Long, Order> entries = new LinkedHashMap<>();
 
@@ -111,7 +120,7 @@ public class GOrderBucketImpl implements IOrderBucket {
             // 调用 genMatchEvent 方法生成撮合事件，记录此次撮合的细节
             genMatchEvent(order, triggerCmd, fullMatch, volumeLeft == 0, traded);
 
-            if (fullMatch) {// 如果订单完全成交
+            if (fullMatch) {// 如果订单完全成交 也就是说 这个委托的量归零了
                 // 执行回调函数，从订单系统中移除该订单
                 removeOrderCallback.accept(order);
                 // 从当前遍历中移除该订单
