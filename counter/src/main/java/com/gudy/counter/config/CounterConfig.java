@@ -1,5 +1,6 @@
 package com.gudy.counter.config;
 
+import com.gudy.counter.consumer.MQTTBusConsumer;
 import com.gudy.counter.thirdpart.checksum.ICheckSum;
 import com.gudy.counter.thirdpart.codec.BodyCodec;
 import com.gudy.counter.thirdpart.codec.MsgCodec;
@@ -23,23 +24,48 @@ import java.util.zip.Checksum;
 public class CounterConfig {
     private static final Logger log = LoggerFactory.getLogger(CounterConfig.class);
 
+    /**
+     *  柜台和委托中端,通信的websocket的地址
+     */
+    @Value("${counter.publish_port}")
+    private int pubPort;
+
+    /**
+     * 订阅的总线的ip
+     */
+    @Value("${counter.subscribe_bus_ip}")
+    private String subBusIp;
+
+    /**
+     * 订阅的总线的port
+     */
+    @Value("${counter.subscribe_bus_port}")
+    private int subBusPort;
+
+    /**
+     * 柜台号 也就是会员号
+     */
     @Value("${counter.id}")
     private short memId;
-
+    /**
+     * 雪花算法用到的
+     */
     @Value("${counter.dataCenterId}")
     private Long dataCenterId;
-
+    /**
+     * 雪花算法用到的
+     */
     @Value("${counter.rackId}")
     private Long workerId;
     /*
      * 网关ip
      * */
-    @Value("${counter.gatewayIp}")
+    @Value("${counter.gateway_ip}")
     private String gatewayIp;
     /*
      * 网关端口
      * */
-    @Value("${counter.gatewayPort}")
+    @Value("${counter.gateway_port}")
     private Integer gatewayPort;
 
     @Value("${counter.gatewayid}")
@@ -89,32 +115,15 @@ public class CounterConfig {
 
             clazz = Class.forName(msgCodecClass);
             msgCodec = (MsgCodec) clazz.getDeclaredConstructor().newInstance();
+
+            // 对于这个BusConsumer的初始化,
+            // 它是要有一个顺序依赖关系的。
+            // 它是需要在CounterConfiguration这个类,初始化完成之后才能执行的
+            // 初始化总线连接
+            new MQTTBusConsumer(subBusIp, subBusPort, String.valueOf(memId), msgCodec, cs, vertx).startup();
         } catch (Exception e) {
             log.info("init config err: {}", e);
         }
     }
 
-   /* public Long getDataCenterId() {
-        return dataCenterId;
-    }
-
-    public void setDataCenterId(Long dataCenterId) {
-        this.dataCenterId = dataCenterId;
-    }
-
-    public Long getWorkerId() {
-        return workerId;
-    }
-
-    public void setWorkerId(Long workerId) {
-        this.workerId = workerId;
-    }
-
-    public short getMemId() {
-        return memId;
-    }
-
-    public void setMemId(short memId) {
-        this.memId = memId;
-    }*/
 }

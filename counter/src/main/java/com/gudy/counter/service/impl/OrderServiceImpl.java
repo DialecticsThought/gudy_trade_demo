@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static com.gudy.counter.consumer.MatchDataConsumer.ORDER_DATA_CACHE_ADDR;
+
 /**
  * @Description
  * @Author veritas
@@ -114,6 +116,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
     }
 
+    /**
+     * 保单
+     * @param uid
+     * @param type
+     * @param timestamp
+     * @param code
+     * @param direction
+     * @param price
+     * @param volume
+     * @param ordertype
+     * @return
+     */
     @Override
     public boolean sendOrder(long uid, short type, long timestamp, int code,
                              byte direction, long price, long volume, int ordertype) {
@@ -162,7 +176,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             if (serialize == null) {
                 return false;
             }
-            //config.getVertx().eventBus().send(ORDER_DATA_CACHE_ADDR, Buffer.buffer(serialize));
+            // 把这笔委托 通过vertx 发送到 MatchDataConsumer的缓存
+            config.getVertx().eventBus().send(ORDER_DATA_CACHE_ADDR, Buffer.buffer(serialize));
             // 3.打包委托
             // TODO 先把 ordercmd 包装成 网关提供的消息类 commonMsg ,再把commonMsg变成tcp数据流
             // 4.发送数据
@@ -172,18 +187,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }
     }
 
+    /**
+     * 撤单
+     * @param uid
+     * @param counteroid
+     * @param code
+     * @return
+     */
     @Override
     public boolean cancelOrder(int uid, int counteroid, int code) {
-               /* final OrderCmd orderCmd = OrderCmd.builder()
+                final OrderCmd orderCmd = OrderCmd.builder()
                 .uid(uid)
                 .code(code)
                 .type(CmdType.CANCEL_ORDER)
-                .oid(IDConverter.combineInt2Long(config.getId(), counteroid))
+                .oid(IDConverter.combineInt2Long(config.getMemId(), counteroid))
                 .build();
 
         log.info("recv cancel order :{}", orderCmd);
 
-        gatewayConn.sendOrder(orderCmd);*/
+        gatewayConn.sendOrder(orderCmd);
         return false;
     }
 }

@@ -38,7 +38,10 @@ counter:
   checksum: com.gudy.counter.thirdpart.checksum.ByteCheckSum
   bodycodec: com.gudy.counter.thirdpart.codec.BodyCodec
   msgcodec: com.gudy.counter.thirdpart.codec.MsgCodec
-  gatewayIp: 127.0.0.1 # 需要和gateway模块 关联
-  gatewayPort: 8091 # 需要和gateway模块 关联
+  gateway_ip: 127.0.0.1 # 需要和gateway模块 关联
+  gateway_port: 8091 # 需要和gateway模块 关联
   gatewayid: 1001 # 需要和gateway模块 关联
+  subscribe_bus_ip: 127.0.0.1 # 订阅的总线的ip
+  subscribe_bus_port: 1883 # 订阅的总线的port  MQTT协议的默认端口号就是1883
+  publish_port: 8501 # 柜台和委托中端,通信的websocket的地址
 
