@@ -41,7 +41,7 @@ public class WebSocketConfig {
         // 需要先拿到Vertx
         Vertx vertx = config.getVertx();
 
-        //只允许成交 委托的变动通过websocket总线往外发送
+        // 只允许 成交委托的变动 通过websocket总线往外发送
         // 它需要指定通过这个websocket哪些请求可以放行进来 && 哪些请求可以放行出去
         // 这些请求都是有固定的格式的。
         // 我们先把这些格式作为一个长量,给它定义出来。
@@ -52,8 +52,8 @@ public class WebSocketConfig {
         // 通过Vertx来创建这样一个websocket的处理器
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
         // 这个处理器需要指定两个参数。
-        // 第一个,就是这个连接有哪些选项。
-        // 第二个,就是对于连接事件的一些处理器。
+        // 第1个,就是这个连接有哪些选项。
+        // 第2个,就是对于连接事件的一些处理器。
         sockJSHandler.bridge(options, event -> {
             // 这里就做一个简单的打印了。
             // 当这个socket的创建和关闭的时候,我们都给它做个打印

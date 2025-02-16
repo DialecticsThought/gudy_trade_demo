@@ -20,6 +20,7 @@ import static com.gudy.counter.consumer.MQTTBusConsumer.INNER_MARKET_DATA_CACHE_
  * 这个行情处理器
  * 它的作用:  接受磋合核心定时发过来的那个五档行情, 然后缓存下来
  * 方便给委托中端提供查询就可以了。
+ * TODO 与撮合模块 交互
  */
 @Log4j2
 @Component
@@ -29,7 +30,7 @@ public class MarketDataConsumer {
     private CounterConfig config;
 
     /**
-     * 缓存所有磋合核心发过来的五档行情数据
+     * 缓存所有撮合核心发过来的五档行情数据
      *
      * <股票code,对应最新的五档行情>
      */
@@ -80,6 +81,8 @@ public class MarketDataConsumer {
                     }
 
                 });
+
+
         // 委托中端的行情请求的处理器
         // 这个处理器 要处理websocket的vertx上面的消息的
         // vertx给我们提供了一个很好的特性。
@@ -95,17 +98,12 @@ public class MarketDataConsumer {
         // 请求的数据,是放在它的头里面的。
         eventBus.consumer(L1_MARKET_DATA_PREFIX)
                 .handler(h -> {
-                    // 通过这个code,
-                    // 我们就能拿到委托终端所希望获取哪只股票的这个五档行情。
-                    // 有了这个code之后,
-                    // 我们就直接去行情的那个缓存里面,把数据拿出来,
-                    // 然后回给委托终端就可以了。
+                    // 通过这个code,我们就能拿到委托终端所希望获取哪只股票的这个五档行情。
+                    // 有了这个code之后, 我们就直接去行情的那个缓存里面,把数据拿出来,然后回给委托终端就可以了。
                     int code = Integer.parseInt(h.headers().get("code"));
                     L1MarketData data = l1Cache.get(code);
-                    // 因为下游的委托中端,
-                    //它本质上是一个网页,
-                    //所以我们这里回数据,
-                    //直接回一个json格式的数据。
+                    // 因为下游的委托中端,它本质上是一个网页,
+                    // 所以我们这里直接回一个json格式的数据。
                     h.reply(JsonUtil.toJson(data));
                 });
     }
