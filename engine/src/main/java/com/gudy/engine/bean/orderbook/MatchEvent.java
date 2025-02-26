@@ -23,7 +23,7 @@ import lombok.ToString;
 
 
 /**
- * 不能命名为TradeEvnet ，因为除了成交事件 还有撤单等其他event
+ * 不能命名为TradeEvent ，因为除了成交事件 还有撤单等其他event
  * MatchEvent是撮合模块发布撮合结果的成员变量
  * <p>
  * 这个类是disruptor内部用的

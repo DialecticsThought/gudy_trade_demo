@@ -126,7 +126,7 @@ public class GOrderBookImpl implements IOrderBook {
         //预撮合的成交量
         int tVolume = 0;
         // 说明 订单 没有 对应的能预撮合的orderBucket
-        // 也就是说 但订单 灭有与之对应的(卖单/卖单) 匹配
+        // 也就是说 但订单 没有与之对应的(卖单/卖单) 匹配
         if (matchingBuckets.size() == 0) {
             return tVolume;//预撮合的成交量 = 0
         }
@@ -145,11 +145,10 @@ public class GOrderBookImpl implements IOrderBook {
                 emptyBuckets.add(bucket.getPrice());
             }
             // TODO 不太懂
-            // 预撮合的成交量 = 该委托剩下的量
+            // 已经预撮合的成交量 = 需要被撮合的全部数量
             if (tVolume == cmd.volume) {
                 break;
             }
-
         }
         // 真正移除
         emptyBuckets.forEach(matchingBuckets::remove);

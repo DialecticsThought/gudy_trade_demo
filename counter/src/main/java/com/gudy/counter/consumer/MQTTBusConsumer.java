@@ -102,7 +102,7 @@ public class MQTTBusConsumer {
                                 // 要使用TCP的消息总线, 就直接使用vertx的event bus,就可以获得这个消息总线了。
                                 // 丢数据的逻辑, 跟mqtt的总线在vertx当中 定义的API是一模一样的。
                                 //TODO 查看 五档行情处理器和match处理器这两个类
-                                if (msgType == MATCH_ORDER_DATA) {// 匹配的数据
+                                if (msgType == MATCH_ORDER_DATA) {// 匹配的数据 有些客户的委托是该柜台发出的话 会收到 对应的消息
                                     vertx.eventBus().send(INNER_MATCH_DATA_ADDR, Buffer.buffer(body));
                                 } else if (msgType == MATCH_HQ_DATA) {// 五档行情数据
                                     vertx.eventBus().send(INNER_MARKET_DATA_CACHE_ADDR, Buffer.buffer(body));

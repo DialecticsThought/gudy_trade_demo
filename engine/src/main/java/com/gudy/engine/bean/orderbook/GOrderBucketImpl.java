@@ -34,7 +34,7 @@ public class GOrderBucketImpl implements IOrderBucket {
      * 2.当前 orderBucket对象的委托量
      * 也就是 这个价格 的所有委托的量的累加和
      * TODO 需要查阅资料
-     * 如果orderBucket.totalVolume = 0 说明 这个价格液晶没有任何委托了 也就是说没有必要留下这个 orderBucket
+     * 如果orderBucket.totalVolume = 0 说明 这个价格已经没有任何委托了 也就是说没有必要留下这个 orderBucket
      */
     private long totalVolume = 0;
 

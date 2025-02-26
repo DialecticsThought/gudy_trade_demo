@@ -12,7 +12,7 @@ import lombok.extern.log4j.Log4j2;
 /**
  * @Description 网关的 链接的handler
  * 网关 与 柜台之间通信，
- * 柜台相当于客户端 发起练级，网关相当于服务端
+ * 柜台相当于客户端 发起连接，网关相当于服务端
  * 柜台 打包报文 + 发送报文刚给网关
  * @Author veritas
  * @Data 2025/1/7 14:00

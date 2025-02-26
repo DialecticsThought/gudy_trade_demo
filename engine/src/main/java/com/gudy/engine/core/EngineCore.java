@@ -91,7 +91,6 @@ public class EngineCore {
 
     @PostConstruct
     public void startup() {
-
         // 启动撮合核心
         startEngine();
         // 建立总线连接 初始化数据的发送
@@ -116,8 +115,9 @@ public class EngineCore {
         // 上下游通信的模版 是orderCmd 不能直接放入disruptor队列 需要用RbCmd
 
         // 前置风控处理器
+        BaseHandler riskHandler;
         try {
-            BaseHandler riskHandler = new ExistRiskHandler
+            riskHandler = new ExistRiskHandler
                     (userService.queryAllBalance().keySet()
                             , stockService.queryAllStockCode());
         } catch (Exception e) {
@@ -146,6 +146,8 @@ public class EngineCore {
             throw new RuntimeException(e);
         }
         final BaseHandler pubHandler = new L1PubHandler(matcherEventMap, this);
+
+        disruptorCore.bindingHandlerAndStart(riskHandler, matchHandler, pubHandler);
     }
 
     /**
@@ -255,6 +257,7 @@ public class EngineCore {
 
     /**
      * 所有发布的指令 都在这里
+     * disruptor队列的生产者
      *
      * @param cmd
      */
